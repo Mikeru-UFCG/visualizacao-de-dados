@@ -1,0 +1,99 @@
+<!--
+	THIS EXAMPLE WAS DOWNLOADED FROM https://echarts.apache.org/examples/en/editor.html?c=line-smooth&code=PYBwLglsB2AEC8sDeAoWszGAG0iAXMmuhgE4QDmFApqYQOQCGAHhAM73EC-ANMcwEFWbQqhIYAniGoMAxozDUKwUhPp9xAEwWNCAbWLj6AJgAMARgBs6wyRMWA7DfHp75gBzOXbgJxejZmb-doHmwa6BxuGw9sYAzNGxACyc4gC63BqwEkLsorZgUjIxAG6M2ACu1MHQjAC2xfQAIhAAZrTU0ADnjLCa1LCyABYVZbAAFHV1AJSpsLzEbLQQ1CKwBuJiLtpguuu24ubGSQB0ljywAPSXsC3tpJ09fQNmVhNJpqeWsAC0sMbuUzTA4kH7mBwnHwXa63Nodbq9fr_RwTOLuSwnBy_WAfL7AlygnzmTHQm53eFPJGvdwTYw-ACs2LRGIc-IJv3ccRO9NJsPuj0RLwsPlp5mJjL-dPpbIJYIs3N55IeCOeyLMEzFpmxxjF3JlLks9NO7kVcOVlKFOomDksxuxmv14h-xksGKhVzJZoFqsi7x8EJFfxtxsdJB8XKSpv5KqppniE3pRJOcWxSX9kND6GdcZONJhSu9seOqPc7m52MTxLiobSWXEhWkDGwEGg1TrJDYdSwYCGhDApCq7fQEEUdQAyoVsMUtgTZDgVAwAMSaJKGuKtege2AAYRUsGwjFIjGgACteiBD4K2Lt5KQQVxbA_0BkuABuFAoUCQGCwABkv9gOoJG3IZDzAE4ljAAB5cAoGgcYvzg6ZXyAA
+	⚠ Please be aware that this chart is not an official demo of Apache ECharts but is made by user-generated code.
+-->
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+<head>
+  <meta charset="utf-8">
+</head>
+<body style="height: 100%; margin: 0">
+  <div id="container" style="height: 100%"></div>
+
+  
+  <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  
+  <!-- Uncomment this line if you want to dataTool extension
+  <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@5/dist/extension/dataTool.min.js"></script>
+  -->
+  <!-- Uncomment this line if you want to use gl extension
+  <script type="text/javascript" src="https://echarts.apache.org/en/js/vendors/echarts-gl/dist/echarts-gl.min.js"></script>
+  -->
+  <!-- Uncomment this line if you want to echarts-stat extension
+  <script type="text/javascript" src="https://echarts.apache.org/en/js/vendors/echarts-stat/dist/ecStat.min.js"></script>
+  -->
+  <!-- Uncomment this line if you want to echarts-graph-modularity extension
+  <script type="text/javascript" src="https://echarts.apache.org/en/js/vendors/echarts-graph-modularity/dist/echarts-graph-modularity.min.js"></script>
+  -->
+  <!-- Uncomment this line if you want to use map
+  <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@4.9.0/map/js/world.js"></script>
+  -->
+  <!-- Uncomment these two lines if you want to use bmap extension
+  <script type="text/javascript" src="https://api.map.baidu.com/api?v=3.0&ak=YOUR_API_KEY"></script>
+  <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@5/dist/extension/bmap.min.js"></script>
+  -->
+
+  <script type="text/javascript">
+    var dom = document.getElementById('container');
+    var myChart = echarts.init(dom, null, {
+      renderer: 'canvas',
+      useDirtyRect: false
+    });
+    var app = {};
+    
+    var option;
+
+    option = {
+  tooltip: {
+    trigger: 'axis'
+  },
+  xAxis: {
+    type: 'category',
+    data: [
+      '2016',
+      '2017',
+      '2018',
+      '2019',
+      '2020',
+      '2021',
+      '2022',
+      '2023',
+      '2024'
+    ]
+  },
+  yAxis: {
+    type: 'value',
+    name: 'Diferença de chuva (mm)'
+  },
+  series: [
+    {
+      data: [
+        124.6, // Diferença de 2016 (404.6 - 280)
+        -17.9, // Diferença de 2017 (386.7 - 404.6)
+        -91.7, // Diferença de 2018 (295 - 386.7)
+        -83.5, // Diferença de 2019 (211.5 - 295)
+        -101.5, // Diferença de 2020 (110 - 211.5)
+        654.8, // Diferença de 2021 (764.8 - 110)
+        -266.9, // Diferença de 2022 (497.9 - 764.8)
+        93.4, // Diferença de 2023 (591.3 - 497.9)
+        -202.8 // Diferença de 2024 (388.5 - 591.3)
+      ],
+      type: 'line',
+      smooth: true,
+      itemStyle: {
+        color: '#d4653f' // Cor laranja para destacar
+      }
+    }
+  ]
+};
+
+option && myChart.setOption(option);
+
+    if (option && typeof option === 'object') {
+      myChart.setOption(option);
+    }
+
+    window.addEventListener('resize', myChart.resize);
+  </script>
+</body>
+</html>
