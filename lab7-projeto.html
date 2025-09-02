@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balança Comercial Brasileira - Apache ECharts</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        #main-container {
+            max-width: 1200px;
+            margin: auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        #header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        #header h1 {
+            font-size: 24px;
+            color: #333;
+        }
+        #header select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        #map-chart, #line-chart {
+            width: 100%;
+            height: 500px;
+        }
+        #line-chart {
+            margin-top: 20px;
+        }
+        #slider-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        #year-slider {
+            width: 80%;
+        }
+    </style>
+</head>
+<body>
+
+<div id="main-container">
+    <div id="header">
+        <h1>Volume de Exportações do Brasil (Ano 2025)</h1>
+        <div>
+            <label for="tipoMovimento">Tipo de Movimento:</label>
+            <select id="tipoMovimento">
+                <option value="EXP">Exportações</option>
+                <option value="IMP">Importações</option>
+                <option value="BAL">Balança Comercial</option>
+            </select>
+        </div>
+    </div>
+    
+    <div id="map-chart"></div>
+    <div id="slider-container">
+        <span>Ano: <span id="currentYear">2025</span></span>
+        <input type="range" id="year-slider" min="1997" max="2025" value="2025">
+    </div>
+
+    <hr>
+
+    <div id="line-chart"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+
+<script>
+    // Inicializa os gráficos e mostra a tela de carregamento
+    const mapChartDom = document.getElementById('map-chart');
+    const mapChart = echarts.init(mapChartDom);
+    mapChart.showLoading();
+
+    const lineChartDom = document.getElementById('line-chart');
+    const lineChart = echarts.init(lineChartDom);
+    lineChart.showLoading();
+
+    const selectMovimento = document.getElementById('tipoMovimento');
+    const yearSlider = document.getElementById('year-slider');
+    const currentYearSpan = document.getElementById('currentYear');
+    const headerTitle = document.querySelector('#header h1');
+
+    let allData; 
+    let selectedYear = 2025;
+    let selectedTipo = 'EXP';
+    let lineChartData = {};
+
+    // Função de processamento de dados para o mapa
+    function processMapData(data, year, tipo) {
+        const countryData = {};
+        data.forEach(item => {
+            if (item[1] === year && item[0] === tipo) {
+                if (!countryData[item[2]]) {
+                    countryData[item[2]] = 0;
+                }
+                countryData[item[2]] += item[3] / 1000000000; // Convertendo para bilhões de US$
+            }
+        });
+        return Object.keys(countryData).map(country => ({
+            name: country,
+            value: countryData[country]
+        }));
+    }
+
+    // Função de processamento de dados para o gráfico de linha
+    function processLineData(data) {
+        const years = Array.from({length: 29}, (_, i) => 1997 + i); 
+        const expData = new Array(years.length).fill(0);
+        const impData = new Array(years.length).fill(0);
+        const balData = new Array(years.length).fill(0);
+
+        data.forEach(item => {
+            const yearIndex = years.indexOf(item[1]);
+            if (yearIndex !== -1) {
+                const value = item[3] / 1000000000;
+                if (item[0] === 'EXP') {
+                    expData[yearIndex] += value;
+                } else if (item[0] === 'IMP') {
+                    impData[yearIndex] += value;
+                } else if (item[0] === 'BAL') {
+                    balData[yearIndex] += value;
+                }
+            }
+        });
+        return { years, expData, impData, balData };
+    }
+
+    // Função de atualização dos gráficos
+    function updateCharts() {
+        const selectedYearInt = parseInt(selectedYear);
+        currentYearSpan.textContent = selectedYearInt;
+        headerTitle.textContent = `Volume de ${selectMovimento.options[selectMovimento.selectedIndex].text} do Brasil (Ano ${selectedYearInt})`;
+
+        // Atualiza o gráfico de mapa
+        const mapSeriesData = processMapData(allData, selectedYearInt, selectedTipo);
+        const allValues = mapSeriesData.map(d => d.value);
+        const maxAbsValue = Math.max(...allValues.map(Math.abs));
+
+        const mapOption = {
+            title: {
+                text: '', // Já temos um título no HTML
+                subtext: 'Dados do Monitor do Comércio Exterior Brasileiro',
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'item',
+                formatter: function (params) {
+                    if (params.value) {
+                        return `${params.name} <br/> US$ ${params.value.toFixed(2)} bi`;
+                    }
+                    return params.name;
+                }
+            },
+            visualMap: {
+                orient: 'vertical',
+                left: 'right',
+                min: -maxAbsValue,
+                max: maxAbsValue,
+                text: ['Alto', 'Baixo'],
+                calculable: true,
+                inRange: {
+                    color: ['#4575b4', '#91bfdb', '#e0f3f8', '#ffffbf', '#fee090', '#fc8d59', '#d73027']
+                }
+            },
+            series: [{
+                name: 'Volume negociado',
+                type: 'map',
+                map: 'world',
+                roam: true,
+                data: mapSeriesData,
+                emphasis: {
+                    label: {
+                        show: true,
+                        formatter: '{b}'
+                    }
+                }
+            }]
+        };
+        mapChart.setOption(mapOption);
+
+        // Atualiza o gráfico de linha
+        const lineOption = {
+            title: {
+                text: 'Totais por ano',
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                data: ['Exportações', 'Importações', 'Balança Comercial'],
+                bottom: '10%'
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '20%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: lineChartData.years
+            },
+            yAxis: {
+                type: 'value',
+                name: 'Bilhões de US$',
+                nameLocation: 'middle',
+                nameGap: 30
+            },
+            series: [
+                {
+                    name: 'Exportações',
+                    type: 'line',
+                    data: lineChartData.expData,
+                    lineStyle: { color: 'green' }
+                },
+                {
+                    name: 'Importações',
+                    type: 'line',
+                    data: lineChartData.impData,
+                    lineStyle: { color: 'red' }
+                },
+                {
+                    name: 'Balança Comercial',
+                    type: 'line',
+                    data: lineChartData.balData,
+                    lineStyle: { color: 'blue' }
+                }
+            ]
+        };
+        lineChart.setOption(lineOption);
+    }
+
+    // Carregamento de dados e registro do mapa-múndi
+    $.when(
+        $.get('dados.json'),
+        $.get('world.json')
+    ).done(function(dataRes, mapRes) {
+        mapChart.hideLoading();
+        lineChart.hideLoading();
+        
+        allData = dataRes[0];
+        const worldGeoJson = mapRes[0];
+        echarts.registerMap('world', worldGeoJson);
+
+        lineChartData = processLineData(allData);
+        updateCharts();
+
+        // Eventos para interatividade
+        selectMovimento.addEventListener('change', (event) => {
+            selectedTipo = event.target.value;
+            updateCharts();
+        });
+
+        yearSlider.addEventListener('input', (event) => {
+            selectedYear = event.target.value;
+            updateCharts();
+        });
+
+        lineChart.on('click', function(params) {
+            if (params.componentType === 'xAxis') {
+                selectedYear = params.value;
+                yearSlider.value = selectedYear;
+                updateCharts();
+            }
+        });
+    });
+</script>
+</body>
+</html>
